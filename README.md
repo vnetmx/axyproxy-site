@@ -62,5 +62,5 @@ To connect via Git instead:
 
 ## License
 
-Site content © 2025 Alejandro Mendez.  
+Site content © 2026 Axgot.  
 Extension is a fork of [SwitchyOmega](https://github.com/FelisCatus/SwitchyOmega) © 2012–2017 The SwitchyOmega Authors. Licensed under [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.html).
