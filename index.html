@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AxyProxy Switcher — Proxy Manager for Chrome</title>
+  <meta name="description" content="AxyProxy Switcher lets you manage and switch between multiple proxy profiles instantly. Fast, private, and open source." />
+  <meta property="og:title" content="AxyProxy Switcher" />
+  <meta property="og:description" content="Manage and switch between multiple proxy profiles quickly & easily." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    /* ── Reset & tokens ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-900: #0d1b4b;
+      --blue-800: #122068;
+      --blue-700: #1a3a8f;
+      --blue-600: #1e64dc;
+      --blue-500: #3b82f6;
+      --blue-400: #60a5fa;
+      --blue-100: #dbeafe;
+      --blue-50:  #eff6ff;
+      --white:    #ffffff;
+      --gray-50:  #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.08);
+      --shadow-lg: 0 20px 60px rgba(0,0,0,.15);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      color: var(--gray-800);
+      background: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ─────────────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.85);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--gray-800);
+    }
+    .nav-logo .icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(145deg, var(--blue-600), var(--blue-800));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.5px;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-logo span { font-weight: 700; font-size: 15px; }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--gray-600);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color .15s;
+    }
+    .nav-links a:hover { color: var(--blue-600); }
+    .btn-nav {
+      background: var(--blue-600);
+      color: white !important;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 600 !important;
+      transition: background .15s !important;
+    }
+    .btn-nav:hover { background: var(--blue-700) !important; color: white !important; }
+
+    /* ── Hero ────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(160deg, var(--blue-900) 0%, var(--blue-700) 55%, var(--blue-600) 100%);
+      color: white;
+      padding: 96px 24px 80px;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 120%, rgba(96,165,250,.18) 0%, transparent 70%);
+    }
+    .hero-inner { max-width: 760px; margin: 0 auto; position: relative; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      color: var(--blue-100);
+    }
+    .hero-badge .dot {
+      width: 6px; height: 6px;
+      background: #4ade80;
+      border-radius: 50%;
+    }
+
+    .hero-icon {
+      width: 88px; height: 88px;
+      background: linear-gradient(145deg, rgba(255,255,255,.22), rgba(255,255,255,.08));
+      border: 1.5px solid rgba(255,255,255,.25);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 46px;
+      font-weight: 900;
+      color: white;
+      margin: 0 auto 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+      letter-spacing: -2px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, #93c5fd, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: rgba(255,255,255,.78);
+      max-width: 540px;
+      margin: 0 auto 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      color: var(--blue-700);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 13px 26px;
+      border-radius: 10px;
+      text-decoration: none;
+      box-shadow: var(--shadow-md);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.28);
+      color: white;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 13px 26px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.2); }
+
+    .hero-meta {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 36px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: rgba(255,255,255,.55);
+    }
+    .hero-meta span { display: flex; align-items: center; gap: 5px; }
+
+    /* ── Section base ────────────────────────────────────────────── */
+    section { padding: 80px 24px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--blue-600);
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--gray-600);
+      max-width: 520px;
+      line-height: 1.65;
+    }
+
+    /* ── Features ────────────────────────────────────────────────── */
+    #features { background: var(--gray-50); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 22px;
+      margin-top: 52px;
+    }
+    .feature-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .feature-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: var(--blue-50);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 7px;
+      letter-spacing: -0.01em;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--gray-600);
+      line-height: 1.65;
+    }
+
+    /* ── How it works ────────────────────────────────────────────── */
+    #how-it-works { background: white; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0;
+      margin-top: 52px;
+      position: relative;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 28px; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue-200,#bfdbfe), var(--blue-600), var(--blue-200,#bfdbfe));
+      opacity: .35;
+    }
+    .step {
+      text-align: center;
+      padding: 0 24px 0;
+      position: relative;
+    }
+    .step-num {
+      width: 56px; height: 56px;
+      background: linear-gradient(145deg, var(--blue-600), var(--blue-800));
+      border-radius: 50%;
+      color: white;
+      font-weight: 800;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 4px 14px rgba(30,100,220,.35);
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 0.88rem; color: var(--gray-600); line-height: 1.6; }
+
+    /* ── Open source strip ───────────────────────────────────────── */
+    .oss-strip {
+      background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
+      color: white;
+      padding: 56px 24px;
+      text-align: center;
+    }
+    .oss-strip h2 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .oss-strip p {
+      color: rgba(255,255,255,.7);
+      font-size: 1rem;
+      margin-bottom: 26px;
+      max-width: 460px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-outline-white {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid rgba(255,255,255,.5);
+      color: white;
+      font-weight: 600;
+      font-size: 14.5px;
+      padding: 11px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: border-color .15s, background .15s;
+    }
+    .btn-outline-white:hover {
+      border-color: white;
+      background: rgba(255,255,255,.1);
+    }
+
+    /* ── Privacy Policy ──────────────────────────────────────────── */
+    #privacy {
+      background: var(--gray-50);
+      border-top: 1px solid var(--gray-200);
+    }
+    .privacy-box {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      margin-top: 40px;
+      box-shadow: var(--shadow-sm);
+    }
+    .privacy-box h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 32px 0 10px;
+      color: var(--gray-800);
+      letter-spacing: -0.01em;
+    }
+    .privacy-box h3:first-child { margin-top: 0; }
+    .privacy-box p, .privacy-box li {
+      font-size: 0.92rem;
+      color: var(--gray-600);
+      line-height: 1.75;
+    }
+    .privacy-box ul {
+      list-style: none;
+      padding: 0;
+    }
+    .privacy-box ul li::before {
+      content: '✓';
+      color: var(--blue-600);
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    .privacy-box a {
+      color: var(--blue-600);
+      text-decoration: none;
+    }
+    .privacy-box a:hover { text-decoration: underline; }
+    .privacy-date {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid var(--gray-200);
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    footer {
+      background: var(--gray-800);
+      color: rgba(255,255,255,.55);
+      padding: 36px 24px;
+      text-align: center;
+      font-size: 13px;
+    }
+    footer a { color: rgba(255,255,255,.7); text-decoration: none; }
+    footer a:hover { color: white; }
+    .footer-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+
+    /* ── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      nav .nav-links { display: none; }
+      .steps::before { display: none; }
+      .step { padding: 0 0 36px; }
+      .privacy-box { padding: 28px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <div class="icon">A</div>
+      <span>AxyProxy Switcher</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="https://github.com/vnetmx/SwitchyOmega" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://chromewebstore.google.com" target="_blank" rel="noopener" class="btn-nav">Add to Chrome</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      Free &amp; Open Source · Chrome Extension
+    </div>
+    <div class="hero-icon">A</div>
+    <h1>
+      Switch proxies<br/>
+      <span>without the hassle</span>
+    </h1>
+    <p>
+      AxyProxy Switcher gives you full control over your browser's proxy
+      settings. Create profiles, define rules, and switch in one click —
+      all without leaving your browser.
+    </p>
+    <div class="hero-actions">
+      <a href="https://chromewebstore.google.com" class="btn-primary" target="_blank" rel="noopener">
+        <!-- Chrome icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="5" fill="#4285F4"/>
+          <path d="M12 7h9.27A10 10 0 1 0 12 22V12" stroke="#34A853" stroke-width="2.2" fill="none"/>
+          <path d="M12 7l4.5 7.79H7.5L12 7Z" fill="#FBBC05"/>
+        </svg>
+        Add to Chrome — Free
+      </a>
+      <a href="https://github.com/vnetmx/SwitchyOmega" class="btn-secondary" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/></svg>
+        View source
+      </a>
+    </div>
+    <div class="hero-meta">
+      <span>🔒 No data collection</span>
+      <span>⚡ MV3 &amp; Chromium ready</span>
+      <span>🆓 100% free</span>
+      <span>📜 GPL-3.0 licensed</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ────────────────────────────────────────────── -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything you need to manage proxies</h2>
+    <p class="section-sub">Built on the proven foundation of SwitchyOmega, hardened with security fixes and updated for Manifest V3.</p>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">🔀</div>
+        <h3>Multiple Proxy Profiles</h3>
+        <p>Create as many proxy configurations as you need — HTTP, HTTPS, SOCKS4, SOCKS5. Name them, color-code them, and switch between them instantly.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>Smart Auto-Switch</h3>
+        <p>Define conditions — by domain, URL pattern, IP range, or time of day — and let AxyProxy automatically apply the right proxy for each request.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Rule Lists</h3>
+        <p>Import online rule lists in AutoProxy or SwitchyOmega format to route entire categories of sites through specific proxies without manual configuration.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📜</div>
+        <h3>PAC Script Support</h3>
+        <p>Use Proxy Auto-Configuration scripts — host them remotely or write them inline. Full PAC editor with syntax support built in.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3>Proxy Authentication</h3>
+        <p>Store credentials per-profile and let AxyProxy handle authentication prompts automatically — no more repeated login dialogs.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>Security Hardened</h3>
+        <p>Ships with a strict Content Security Policy, HTTPS-only rule list fetching, Manifest V3 service worker, and no unnecessary permissions.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <h3>Backup &amp; Restore</h3>
+        <p>Export your entire configuration to a JSON backup file and restore it on any device. Keep your proxy setup synchronized across machines.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⌨️</div>
+        <h3>Keyboard Shortcuts</h3>
+        <p>Switch profiles without touching the mouse. The default shortcut <kbd>Alt+Shift+O</kbd> opens the switcher popup and profiles are keyboard-navigable.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <h3>Multilingual UI</h3>
+        <p>Full interface support for English, Simplified Chinese, Traditional Chinese, Czech, Persian, and more languages out of the box.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ────────────────────────────────────────── -->
+<section id="how-it-works">
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Up and running in minutes</h2>
+    <p class="section-sub">No configuration files. No terminal commands. Just install, add a proxy, and switch.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Install the extension</h3>
+        <p>Add AxyProxy Switcher from the Chrome Web Store. It runs entirely in your browser with no external services required.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Create a proxy profile</h3>
+        <p>Open Options and add a Proxy Profile with your server address, port, and protocol. Give it a name you'll recognize.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Set up rules (optional)</h3>
+        <p>Use a Switch Profile to route specific domains through specific proxies automatically — leaving everything else as direct.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Click the icon to switch</h3>
+        <p>The toolbar icon shows the active profile. One click opens the switcher popup — pick any profile and it takes effect immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Open Source ──────────────────────────────────────────── -->
+<div class="oss-strip">
+  <h2>Built on open source</h2>
+  <p>AxyProxy Switcher is a fork of SwitchyOmega — the same trusted proxy manager used by millions. Security-hardened, updated for MV3, and maintained by Axgot.</p>
+  <a href="https://github.com/vnetmx/SwitchyOmega" class="btn-outline-white" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/></svg>
+    vnetmx/SwitchyOmega on GitHub
+  </a>
+</div>
+
+<!-- ── Privacy Policy ───────────────────────────────────────── -->
+<section id="privacy">
+  <div class="section-inner">
+    <div class="section-label">Privacy</div>
+    <h2 class="section-title">Privacy Policy</h2>
+    <p class="section-sub">Short version: we collect nothing. The extension runs entirely inside your browser.</p>
+
+    <div class="privacy-box">
+
+      <h3>Overview</h3>
+      <p>AxyProxy Switcher ("the extension") is a browser extension for Google Chrome that manages proxy settings. This Privacy Policy describes how the extension handles data.</p>
+
+      <h3>Data we do NOT collect</h3>
+      <ul>
+        <li>We do not collect, store, transmit, or share any personally identifiable information.</li>
+        <li>We do not track your browsing history, URLs visited, or any page content.</li>
+        <li>We do not insert advertisements, analytics scripts, or tracking pixels into any webpage.</li>
+        <li>We do not send any data to our servers — because we operate no servers for this extension.</li>
+        <li>We do not use cookies, fingerprinting, or any form of cross-site tracking.</li>
+      </ul>
+
+      <h3>Local data storage only</h3>
+      <p>All configuration data — proxy profiles, switch rules, and preferences — is stored locally in your browser using the standard Chrome extension storage API (<code>chrome.storage</code>). This data never leaves your device unless you explicitly use the built-in backup/export feature to save a file, which is stored on your own computer.</p>
+      <p>If you enable Chrome sync for extensions, your settings may be synchronized by Chrome itself across your signed-in devices, subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's own Privacy Policy</a>. AxyProxy Switcher has no control over or access to this sync process.</p>
+
+      <h3>Network requests made by the extension</h3>
+      <p>The extension makes network requests only in two situations:</p>
+      <ul>
+        <li><strong>Rule list updates:</strong> If you configure a Switch Profile with a remote rule list URL, the extension will periodically fetch that URL to update the rule list. The URL is one you supply; no URL is pre-configured by us.</li>
+        <li><strong>PAC script updates:</strong> If you configure a PAC Profile with a remote PAC script URL, the extension will fetch that URL on the update schedule you set. Again, this URL is supplied by you.</li>
+      </ul>
+      <p>All such remote fetches are made over HTTPS only (plain HTTP URLs are rejected as a security measure). No request metadata or content is logged or transmitted to us.</p>
+
+      <h3>Permissions explained</h3>
+      <ul>
+        <li><strong>proxy</strong> — Required to read and set Chrome's proxy settings.</li>
+        <li><strong>tabs</strong> — Required to read the current tab's URL so that the popup can show which proxy rule is active for the page you're viewing.</li>
+        <li><strong>storage</strong> — Required to save your proxy profiles and settings locally.</li>
+        <li><strong>webRequest</strong> — Required to handle proxy authentication challenges automatically.</li>
+        <li><strong>webRequestAuthProvider</strong> — Required to supply proxy credentials when challenged.</li>
+        <li><strong>alarms</strong> — Required to schedule periodic rule list / PAC script updates.</li>
+        <li><strong>contextMenus</strong> — Required for the right-click "Inspect proxy for this element" feature.</li>
+        <li><strong>offscreen</strong> — Required for drawing the toolbar icon in the MV3 service worker environment.</li>
+        <li><strong>host_permissions (&lt;all_urls&gt;)</strong> — Required to intercept and route proxy settings for any URL the user navigates to.</li>
+      </ul>
+
+      <h3>Third-party services</h3>
+      <p>The extension itself does not integrate with any third-party analytics, crash reporting, or advertising services. The extension's source code is available for inspection at <a href="https://github.com/vnetmx/SwitchyOmega" target="_blank" rel="noopener">github.com/vnetmx/SwitchyOmega</a>.</p>
+
+      <h3>Children's privacy</h3>
+      <p>This extension does not knowingly collect any information from children under 13. As the extension collects no personal information from anyone, this requirement is satisfied by design.</p>
+
+      <h3>Changes to this policy</h3>
+      <p>If this policy is updated, the new version will be posted at this URL with a revised effective date. Continued use of the extension after changes are posted constitutes acceptance of the updated policy.</p>
+
+      <h3>Contact</h3>
+      <p>Questions about this privacy policy may be directed to the project maintainers via GitHub Issues at <a href="https://github.com/vnetmx/SwitchyOmega/issues" target="_blank" rel="noopener">github.com/vnetmx/SwitchyOmega/issues</a>.</p>
+
+      <p class="privacy-date">Effective date: April 15, 2025 &nbsp;·&nbsp; Last updated: April 15, 2025</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ───────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#privacy">Privacy Policy</a>
+    <a href="https://github.com/vnetmx/SwitchyOmega" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/vnetmx/SwitchyOmega/issues" target="_blank" rel="noopener">Report an issue</a>
+    <a href="https://github.com/FelisCatus/SwitchyOmega" target="_blank" rel="noopener">Original SwitchyOmega</a>
+  </div>
+  <p>
+    AxyProxy Switcher is a fork of <a href="https://github.com/FelisCatus/SwitchyOmega" target="_blank" rel="noopener">SwitchyOmega</a>
+    &copy; 2012–2017 The SwitchyOmega Authors. Modifications &copy; 2025 Alejandro Mendez.
+    Licensed under <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0</a>.
+  </p>
+</footer>
+
+</body>
+</html>
